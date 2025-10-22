@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Happy Birthday, Aurell!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;600;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1: #f6d365;
+      --bg2: #fda085;
+      --card: rgba(255,255,255,0.9);
+      --accent: #ff7ab6;
+      --muted: #6b6b6b;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Nunito,system-ui,Arial,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      -webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;padding:32px}
+    .wrap{max-width:900px;width:100%}
+    .card{
+      background:var(--card);
+      border-radius:20px;padding:36px;box-shadow:0 10px 30px rgba(0,0,0,0.12);
+      position:relative;overflow:hidden;
+    }
+    .header{display:flex;align-items:center;gap:20px}
+    .avatar{
+      width:96px;height:96px;border-radius:50%;background:linear-gradient(180deg,#fff,#ffe9f2);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 6px 18px rgba(0,0,0,0.08)
+    }
+    .title{font-family:'Playfair Display',serif;font-size:28px;margin:0}
+    .subtitle{color:var(--muted);margin:4px 0 0}
+    .message{margin-top:22px;line-height:1.7;color:#222;font-size:16px}
+    .message p{margin:0 0 14px}
+    .cta{display:flex;gap:12px;margin-top:22px}
+    .btn{padding:10px 14px;border-radius:12px;border:0;cursor:pointer;font-weight:700}
+    .btn-primary{background:linear-gradient(90deg,var(--accent),#ffb36b);color:white}
+    .btn-ghost{background:transparent;border:1px solid rgba(0,0,0,0.06)}
+    .cake{display:inline-block;margin-left:8px}
+
+    /* confetti dots */
+    .confetti{
+      pointer-events:none;position:absolute;inset:0;overflow:hidden;
+    }
+    .confetti i{
+      position:absolute;display:block;width:10px;height:14px;opacity:0.9;transform:translateY(-100vh) rotate(0deg);
+      animation-name:fall;animation-duration:3.2s;animation-timing-function:ease-in;animation-iteration-count:infinite
+    }
+    @keyframes fall{
+      0%{transform:translateY(-10vh) rotate(0deg);opacity:0}
+      10%{opacity:1}
+      100%{transform:translateY(110vh) rotate(360deg);opacity:0.9}
+    }
+    /* decorative bottom text */
+    .footer{margin-top:20px;color:var(--muted);font-size:14px}
+
+    /* responsive */
+    @media (max-width:520px){.header{flex-direction:row;gap:12px}.title{font-size:20px}.avatar{width:72px;height:72px;font-size:30px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="region" aria-label="Ucapan ulang tahun untuk Annisa Naila Aurelia">
+      <div class="header">
+        <div class="avatar" aria-hidden="true">🎉</div>
+        <div>
+          <h1 class="title">Haii, Aurell! <span style="font-size:16px;color:var(--muted);font-weight:600;display:block">Selamat ulang tahun 🎂</span></h1>
+  
+        </div>
+      </div>
+
+      <div class="message" id="message">
+        <p>Haii, Aurell!
+        <br>Hari ini adalah hari yang spesial buat kamu. Setelah melewati begitu banyak rintangan dan perjalanan panjang, kamu masih bisa tiba di titik ini hari ulang tahunmu, hari yang selalu datang satu kali dalam setahun untuk mengingatkan betapa berharganya kamu.</p>
+
+        <p>Mungkin di tahun ini kamu merasa kalau ini bukan tahun yang kamu harapkan. Ada momen-momen yang berat, rasa lelah yang tak terlihat, dan pertarungan batin yang tidak semua orang tahu. Tapi ingat, kamu tidak pernah benar-benar sendirian. Ada banyak orang di sekitarmu yang sayang, peduli, dan selalu ingin melihat kamu bahagia.</p>
+
+        <p>Terima kasih ya, karena kamu udah bertahan sejauh ini. Terima kasih karena kamu nggak menyerah di tengah jalan. Aku bersyukur banget bisa mengenal sosok sekuat dan seberarti kamu. Kamu adalah orang yang kuat, walau kadang kamu lupa akan hal itu.</p>
+
+        <p>Semoga di ulang tahun ini, semua luka perlahan sembuh, semua doa baik menemukan jalan pulangnya, dan semua mimpi yang pernah kamu simpan pelan-pelan jadi nyata. Kamu layak bahagia, kamu pantas dicintai, dan kamu berhak mendapatkan hari-hari yang lebih baik dari sebelumnya.</p>
+
+        <p><strong>Happy Birthday, Annisa Naila Aurelia!</strong><br>Tetap jadi kamu yang kuat dan bersinar dengan cara kamu sendiri. <span class="cake">🎂✨</span></p>
+      </div>
+
+      <div class="cta">
+        <button class="btn btn-primary" id="celebrate">Coba klik</button> 
+  
+      <div class="confetti" id="confetti" aria-hidden="true"></div>
+      <a href="https://www.instagram.com/stories/faradadayy/3748837431840450061?utm_source=ig_story_item_share&igsh=aTRiOGtrdm1peHdw" target="_blank" class="btn btn-primary" style="display:inline-block;text-decoration:none;text-align:center;">
+        Apayahh
+        </a>
+    </div>
+
+
+  </div>
+
+  <script>
+    // create confetti pieces
+    const confetti = document.getElementById('confetti');
+    const colors = ['#FFD700','#FF6B6B','#8BC34A','#4FC3F7','#B39DDB'];
+    for(let i=0;i<28;i++){
+      const el = document.createElement('i');
+      el.style.left = (Math.random()*100)+'%';
+      el.style.background = colors[i % colors.length];
+      el.style.width = (6 + Math.random()*10)+'px';
+      el.style.height = (8 + Math.random()*16)+'px';
+      el.style.animationDelay = (Math.random()*2)+'s';
+      el.style.transform = 'translateY(-100vh) rotate('+ (Math.random()*360) +'deg)';
+      el.style.borderRadius = (Math.random()>0.6? '2px' : '50%');
+      confetti.appendChild(el);
+    }
+
+    // celebrate button toggles a short confetti burst and a subtle pulse
+    document.getElementById('celebrate').addEventListener('click', ()=>{
+      const card = document.querySelector('.card');
+      card.animate([{transform:'scale(1)'},{transform:'scale(1.02)'},{transform:'scale(1)'}],{duration:600,iterations:1});
+      // restart confetti animation by reflow
+      confetti.querySelectorAll('i').forEach((el,idx)=>{
+        el.style.animation = 'none';
+        void el.offsetWidth;
+        el.style.animation = '';
+      });
+    });
+  
+  </script>
+</body>
+</html>
+
