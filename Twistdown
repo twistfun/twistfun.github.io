@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Media Downloader (Instagram / TikTok / YouTube)</title>
+  <style>
+    :root{
+      --bg:#f3f4f6; --card:#ffffff; --primary:#2563eb; --muted:#6b7280;
+      --success:#10b981;
+    }
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{margin:0;background:var(--bg);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+    .card{width:100%;max-width:720px;background:var(--card);border-radius:16px;box-shadow:0 6px 30px rgba(2,6,23,0.08);padding:28px;}
+    h1{margin:0 0 10px;font-size:22px;}
+    p.lead{margin:0 0 18px;color:var(--muted);font-size:14px;}
+    label{display:block;font-size:13px;margin-bottom:8px;color:#111827;font-weight:600;}
+    .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+    select,input{padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;width:100%;font-size:14px;}
+    button{background:var(--primary);color:#fff;border:none;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;}
+    button:disabled{opacity:.6;cursor:not-allowed;}
+    .muted{color:var(--muted);font-size:13px;margin-top:10px;}
+    .progress-wrap{margin-top:12px;background:#eef2ff;padding:8px;border-radius:10px;}
+    .progress{height:12px;background:#fff;border-radius:9px;overflow:hidden;border:1px solid #e6e9ff;}
+    .progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#60a5fa,#2563eb);border-radius:9px;transition:width .15s linear;}
+    .status{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:13px;color:var(--muted);}
+    .small{font-size:12px;color:var(--muted);}
+    footer{margin-top:18px;text-align:center;font-size:12px;color:var(--muted);}
+    @media (max-width:520px){.row{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="card" role="main">
+    <h1>Media Downloader</h1>
+    <p class="lead">Download media dari Instagram, TikTok, dan YouTube. (Butuh backend yang menjalankan yt-dlp/ffmpeg)</p>
+
+    <div class="row">
+      <div style="flex:1 1 220px;">
+        <label for="platform">Platform</label>
+        <select id="platform" aria-label="Platform">
+          <option value="instagram">Instagram</option>
+          <option value="tiktok">TikTok</option>
+          <option value="youtube">YouTube</option>
+        </select>
+      </div>
+
+      <div style="flex:2 1 320px;">
+        <label for="url">URL</label>
+        <input id="url" type="url" placeholder="https://..." aria-label="URL"/>
+      </div>
+    </div>
+
+    <div class="row" style="align-items:center;margin-top:6px;">
+      <button id="downloadBtn">Download</button>
+      <div style="flex:1"></div>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap" style="display:none">
+      <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+      <div class="status">
+        <div id="statusText" class="small">Menunggu...</div>
+        <div id="percentText" class="small">0%</div>
+      </div>
+    </div>
+
+    <div id="log" class="muted" style="margin-top:12px"></div>
+
+    <footer>
+      <div>*Frontend only. Backend harus meng-serve POST /api/download yang men-stream file.</div>
+    </footer>
+  </div>
+
+  <script>
+    const btn = document.getElementById('downloadBtn');
+    const urlIn = document.getElementById('url');
+    const platformSel = document.getElementById('platform');
+    const progressWrap = document.getElementById('progressWrap');
+    const progressBar = document.getElementById('progressBar');
+    const percentText = document.getElementById('percentText');
+    const statusText = document.getElementById('statusText');
+    const log = document.getElementById('log');
+
+    function setProgress(p, downloaded, total){
+      progressBar.style.width = Math.round(p*100) + '%';
+      percentText.textContent = Math.round(p*100) + '%';
+      statusText.textContent = downloaded && total ? formatBytes(downloaded) + ' / ' + formatBytes(total) : 'Mengunduh...';
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return '0 B';
+      const units = ['B','KB','MB','GB','TB'];
+      let i = 0;
+      while(bytes >= 1024 && i < units.length-1){ bytes/=1024; i++; }
+      return bytes.toFixed(bytes>=100 ? 0:1) + ' ' + units[i];
+    }
+
+    btn.addEventListener('click', async () => {
+      const url = urlIn.value.trim();
+      const platform = platformSel.value;
+      if (!url){
+        alert('Masukkan URL dulu.');
+        return;
+      }
+
+      // Reset UI
+      progressWrap.style.display = 'block';
+      setProgress(0, 0, 0);
+      log.textContent = '';
+      btn.disabled = true;
+      btn.textContent = 'Memulai...';
+
+      try {
+        // Send POST to backend. Expect streaming response (binary).
+        const resp = await fetch('/api/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ platform, url })
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text();
+          throw new Error(txt || ('Server error: ' + resp.status));
+        }
+
+        // Try to discover filename from header
+        const disposition = resp.headers.get('Content-Disposition') || '';
+        let filename = '';
+        const fnMatch = disposition.match(/filename\\*=UTF-8''([^;\\n]+)|filename=\"?([^\";]+)\"?/i);
+        if (fnMatch) {
+          filename = decodeURIComponent(fnMatch[1] || fnMatch[2] || '');
+        } else {
+          // fallback
+          filename = platform + '-media';
+        }
+
+        // Content-Length for progress (may be absent)
+        const contentLength = resp.headers.get('Content-Length');
+        const total = contentLength ? parseInt(contentLength, 10) : null;
+
+        // Stream reading
+        const reader = resp.body.getReader();
+        const chunks = [];
+        let received = 0;
+        btn.textContent = 'Mengunduh...';
+        statusText.textContent = 'Mengunduh...';
+
+        while(true){
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          received += value.length;
+          if (total) {
+            setProgress(received/total, received, total);
+          } else {
+            // animate progress if unknown: use a loose heuristic
+            const approx = Math.min(0.95, 0.6 + (received % 1000000)/1000000*0.35);
+            setProgress(approx, received, null);
+            percentText.textContent = formatBytes(received);
+          }
+        }
+
+        // finalize progress
+        if (total) setProgress(1, total, total);
+        else { progressBar.style.width = '100%'; percentText.textContent = '100%'; statusText.textContent = formatBytes(received); }
+
+        // concatenate chunks into blob
+        const blob = new Blob(chunks);
+        // Create download link
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename || (platform + '-media');
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(blobUrl);
+
+        log.textContent = 'Selesai. Jika file tidak otomatis ter-download, periksa popup blocker atau header server.';
+        btn.textContent = 'Download lagi';
+      } catch (err) {
+        console.error(err);
+        log.textContent = 'Error: ' + (err.message || err);
+        btn.textContent = 'Coba lagi';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
